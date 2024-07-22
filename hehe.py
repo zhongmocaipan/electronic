@@ -10,9 +10,10 @@ import numpy as np
 # 全局变量用于保存数据
 data_buffer = []
 text_data_buffer = []
+ser = None  # 全局串口对象
 
 def read_serial_data(port, baudrate):
-    global data_buffer, text_data_buffer
+    global data_buffer, text_data_buffer, ser
     try:
         ser = serial.Serial(port, baudrate, timeout=1)
         print(f"Connected to {port} at {baudrate} baud.")
@@ -70,6 +71,56 @@ def update_text(text_area):
         int_value = int(line, 16)  # 将十六进制字符串转换为整数
         text_area.insert(tk.END, f"{line} ({int_value/100})\n")
 
+def send_decimal(data_entry):
+    global ser
+    if ser and ser.is_open:
+        try:
+            value = int(data_entry.get())
+            # 将十进制整数转换为4字节的二进制数据
+            binary_data = value.to_bytes(4, byteorder='big', signed=True)
+            ser.write(binary_data)
+            print(f"Sent decimal data: {value}")
+        except ValueError as e:
+            print(f"Error converting data: {e}")
+        except Exception as e:
+            print(f"Error sending data: {e}")
+    else:
+        print("Serial port not open.")
+
+def send_hexadecimal(data_entry):
+    global ser
+    if ser and ser.is_open:
+        data_str = data_entry.get()
+        try:
+            # 将输入的十六进制字符串转换为二进制数据
+            if len(data_str) % 2 == 0:
+                binary_data = bytes.fromhex(data_str)
+                ser.write(binary_data)
+                print(f"Sent hexadecimal data: {data_str}")
+            else:
+                print("Invalid data length. Must be even number of characters.")
+        except Exception as e:
+            print(f"Error sending data: {e}")
+    else:
+        print("Serial port not open.")
+
+def send_binary(data_entry):
+    global ser
+    if ser and ser.is_open:
+        data_str = data_entry.get()
+        try:
+            # 将输入的二进制字符串转换为二进制数据
+            if len(data_str) % 8 == 0:
+                binary_data = int(data_str, 2).to_bytes(len(data_str) // 8, byteorder='big')
+                ser.write(binary_data)
+                print(f"Sent binary data: {data_str}")
+            else:
+                print("Invalid binary data length. Must be multiple of 8 bits.")
+        except Exception as e:
+            print(f"Error sending data: {e}")
+    else:
+        print("Serial port not open.")
+
 def start_reading(port, baudrate):
     thread = threading.Thread(target=read_serial_data, args=(port, baudrate))
     thread.daemon = True
@@ -88,6 +139,20 @@ def create_gui():
     # 创建一个滚动文本区域用于显示数据
     text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10, font=("Arial", 12))
     text_area.pack(pady=10, padx=10)
+
+    # 创建一个文本框用于输入要发送的数据
+    data_entry = tk.Entry(root, width=50, font=("Arial", 12))
+    data_entry.pack(pady=10, padx=10)
+
+    # 创建按钮用于发送不同类型的数据
+    send_decimal_button = tk.Button(root, text="Send Decimal Data", command=lambda: send_decimal(data_entry))
+    send_decimal_button.pack(pady=10, padx=10)
+    
+    send_hexadecimal_button = tk.Button(root, text="Send Hexadecimal Data", command=lambda: send_hexadecimal(data_entry))
+    send_hexadecimal_button.pack(pady=10, padx=10)
+    
+    send_binary_button = tk.Button(root, text="Send Binary Data", command=lambda: send_binary(data_entry))
+    send_binary_button.pack(pady=10, padx=10)
 
     def update_plot_periodically():
         update_plot(canvas, ax)
