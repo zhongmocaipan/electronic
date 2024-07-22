@@ -60,6 +60,7 @@ def update_plot(canvas, ax):
     ax.set_xlabel('Samples')
     ax.set_ylabel('Value')
     ax.set_title('Real-time Data')
+    ax.set_ylim(-180, 180)  # 设置 y 轴范围
     ax.legend()
     canvas.draw()
 
