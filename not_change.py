@@ -129,11 +129,12 @@ def create_gui():
     send_binary_button = tk.Button(root, text="Send Binary Data", command=lambda: send_data(data_entry.get().strip()))
     send_binary_button.pack(pady=10, padx=10)
 
-    # 创建 Go 和 Stop 按钮
-    go_button = tk.Button(root, text="Go", command=send_go)
+    # 创建 Go 按钮，设置为红色
+    go_button = tk.Button(root, text="Go", command=send_go, bg='red', fg='white')
     go_button.pack(pady=10, padx=10)
 
-    stop_button = tk.Button(root, text="Stop", command=send_stop)
+    # 创建 Stop 按钮，设置为绿色
+    stop_button = tk.Button(root, text="Stop", command=send_stop, bg='green', fg='white')
     stop_button.pack(pady=10, padx=10)
 
     def update_plot_periodically():
@@ -142,7 +143,7 @@ def create_gui():
         root.after(100, update_plot_periodically)  # 每100毫秒更新一次图表和文本区域
 
     # 启动串口读取线程
-    start_reading('COM20', 9600)
+    start_reading('COM17', 9600)
     
     # 启动定时更新图表和文本区域
     update_plot_periodically()
